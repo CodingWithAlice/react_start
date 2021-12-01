@@ -11,12 +11,34 @@ const PRODUCTS = [
 ];
 
 // 搜索栏
-function SearchBar({value, onChangeValue}) {
+const SearchBar = ({
+  filterText,
+  setFilterText,
+  inStockOnly,
+  setInStockOnly
+}) => {
+
+  const handleSearchChange = (e) => {
+    setFilterText(e.target.value);
+  }
+
+  const handleStockChange = (value) => {
+    setInStockOnly(value);
+  }
   return (
     <div>
-      <input type="text" placeholder='search...' value={value} onChange={onChangeValue} />
+      <input
+        type="text"
+        placeholder='search...'
+        value={filterText}
+        onChange={handleSearchChange} />
       <div>
-        <input type='checkbox' width='30'/>
+        <input
+          type='checkbox'
+          width='30'
+          value={inStockOnly}
+          onChange={handleStockChange}
+        />
         Only show products in stock
       </div>
     </div>
@@ -44,11 +66,21 @@ const ProductRow = ({product}) => {
 }
 
 // 产品列表
-function ProductTable({products}) {
+const ProductTable = ({
+  products,
+  filterText,
+  inStockOnly,
+}) => {
   const rows = [];
   let lastCategory;
-  
+
   products.forEach((pro) => {
+    if(pro.name.indexOf(filterText) === -1) {
+      return;
+    }
+    if(inStockOnly && !pro.stocked) {
+      return;
+    }
     if(pro.category !== lastCategory) {
       rows.push(
         <ProductCategoryRow 
@@ -82,31 +114,51 @@ function ProductTable({products}) {
 }
 
 // 最外面的 outer
-class FilterableProductTable extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      searchWord: '',
-      checked: false,
-    };
-  }
+const FilterableProductTable = () => {
+  const [filterText, setFilterText] = React.useState("");
+  const [inStockOnly, setInStockOnly] = React.useState(false);
 
-  // 改变 input 的 value 值的方法
-  onChangeValue(newValue) {
-    this.state.searchWord = newValue;
-  }
-
-  render() {
-    return (
-      <div>
-        <SearchBar
-          value={this.state.searchWord}
-          onChangeValue={this.onChangeValue}/>
-        <ProductTable products={PRODUCTS} />
-      </div>
-    );
-  }
+  return (
+    <div>
+      <SearchBar
+        filterText={filterText}
+        setFilterText={setFilterText}
+        inStockOnly={inStockOnly}
+        setInStockOnly={setInStockOnly}
+      />
+      <ProductTable
+        products={PRODUCTS}
+        filterText={filterText}
+        inStockOnly={inStockOnly}
+      />
+    </div>
+  )
 }
+// class FilterableProductTable extends React.Component {
+//   constructor(props) {
+//     super(props);
+//     this.state = {
+//       searchWord: '',
+//       checked: false,
+//     };
+//   }
+
+//   // 改变 input 的 value 值的方法
+//   onChangeValue(newValue) {
+//     this.state.searchWord = newValue;
+//   }
+
+//   render() {
+//     return (
+//       <div>
+//         <SearchBar
+//           value={this.state.searchWord}
+//           onChangeValue={this.onChangeValue}/>
+//         <ProductTable products={PRODUCTS} />
+//       </div>
+//     );
+//   }
+// }
 
 ReactDOM.render(
   <FilterableProductTable />,
