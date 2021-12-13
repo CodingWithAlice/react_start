@@ -1,166 +1,63 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-// 基础数据
-const PRODUCTS = [
-  {category: 'Sporting Goods', price: '$49.99', stocked: true, name: 'Football'},
-  {category: 'Sporting Goods', price: '$9.99', stocked: true, name: 'Baseball'},
-  {category: 'Sporting Goods', price: '$29.99', stocked: false, name: 'Basketball'},
-  {category: 'Electronics', price: '$99.99', stocked: true, name: 'iPod Touch'},
-  {category: 'Electronics', price: '$399.99', stocked: false, name: 'iPhone 5'},
-  {category: 'Electronics', price: '$199.99', stocked: true, name: 'Nexus 7'}
-];
+import { Popconfirm, Switch, message } from 'antd';
+import './index.css';
 
-// 搜索栏
-const SearchBar = ({
-  filterText,
-  setFilterText,
-  inStockOnly,
-  setInStockOnly
-}) => {
+class App extends React.Component {
+  state = {
+    visible: false,
+    condition: true, // Whether meet the condition, if not show popconfirm.
+  };
 
-  const handleSearchChange = (e) => {
-    setFilterText(e.target.value);
-  }
+  changeCondition = value => {
+    this.setState({ condition: value });
+  };
 
-  const handleStockChange = (value) => {
-    setInStockOnly(value);
-  }
-  return (
-    <div>
-      <input
-        type="text"
-        placeholder='search...'
-        value={filterText}
-        onChange={handleSearchChange} />
+  confirm = () => {
+    this.setState({ visible: false });
+    message.success('Next step.');
+  };
+
+  cancel = () => {
+    this.setState({ visible: false });
+    message.error('Click on cancel.');
+  };
+
+  handleVisibleChange = visible => {
+    if (!visible) {
+      this.setState({ visible });
+      return;
+    }
+    // Determining condition before show the popconfirm.
+    console.log(this.state.condition);
+    if (this.state.condition) {
+      this.confirm(); // next step
+    } else {
+      this.setState({ visible }); // show the popconfirm
+    }
+  };
+
+  render() {
+    return (
       <div>
-        <input
-          type='checkbox'
-          width='30'
-          value={inStockOnly}
-          onChange={handleStockChange}
-        />
-        Only show products in stock
+        <Popconfirm
+          title="Are you sure delete this task?"
+          visible={this.state.visible}
+          onVisibleChange={this.handleVisibleChange}
+          onConfirm={this.confirm}
+          onCancel={this.cancel}
+          okText="Yes"
+          cancelText="No"
+        >
+          <a href="#">Delete a task</a>
+        </Popconfirm>
+        <br />
+        <br />
+        Whether directly execute：
+        <Switch defaultChecked onChange={this.changeCondition} />
       </div>
-    </div>
-  )
-}
-// 列表每一个分类的分类名称
-const ProductCategoryRow = ({category}) => {
-  return (
-    <tr>
-      <td>{category}</td>
-    </tr>
-  );
-}
-// 列表每一个分类的分类产品
-const ProductRow = ({product}) => {
-  const name = product.stocked ? (product.name) : (
-    <span style={{color: 'red'}}>{product.name}</span>
-  )
-  return (
-    <tr>
-      <td>{name}</td>
-      <td>{product.price}</td>
-    </tr>
-  )
+    );
+  }
 }
 
-// 产品列表
-const ProductTable = ({
-  products,
-  filterText,
-  inStockOnly,
-}) => {
-  const rows = [];
-  let lastCategory;
-
-  products.forEach((pro) => {
-    if(pro.name.indexOf(filterText) === -1) {
-      return;
-    }
-    if(inStockOnly && !pro.stocked) {
-      return;
-    }
-    if(pro.category !== lastCategory) {
-      rows.push(
-        <ProductCategoryRow 
-          category={pro.category}
-          key={pro.category}
-        />
-      );
-    }
-    rows.push(
-      <ProductRow 
-        product={pro}
-        key={pro.name}
-      />
-    )
-    lastCategory = pro.category;
-  })
-  
-  return (
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>价格</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows}
-      </tbody>
-    </table>
-  )
-}
-
-// 最外面的 outer
-const FilterableProductTable = () => {
-  const [filterText, setFilterText] = React.useState("");
-  const [inStockOnly, setInStockOnly] = React.useState(false);
-
-  return (
-    <div>
-      <SearchBar
-        filterText={filterText}
-        setFilterText={setFilterText}
-        inStockOnly={inStockOnly}
-        setInStockOnly={setInStockOnly}
-      />
-      <ProductTable
-        products={PRODUCTS}
-        filterText={filterText}
-        inStockOnly={inStockOnly}
-      />
-    </div>
-  )
-}
-// class FilterableProductTable extends React.Component {
-//   constructor(props) {
-//     super(props);
-//     this.state = {
-//       searchWord: '',
-//       checked: false,
-//     };
-//   }
-
-//   // 改变 input 的 value 值的方法
-//   onChangeValue(newValue) {
-//     this.state.searchWord = newValue;
-//   }
-
-//   render() {
-//     return (
-//       <div>
-//         <SearchBar
-//           value={this.state.searchWord}
-//           onChangeValue={this.onChangeValue}/>
-//         <ProductTable products={PRODUCTS} />
-//       </div>
-//     );
-//   }
-// }
-
-ReactDOM.render(
-  <FilterableProductTable />,
-  document.getElementById('root')
-)
+ReactDOM.render(<App />, document.getElementById('root'));
